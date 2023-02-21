@@ -190,6 +190,7 @@ class _MultiImageEditorState extends State<MultiImageEditor> {
                 var imageResult = ImageResult(
                     editedList : images,
                   originalFile: widget.originalFile,
+                  isMultiple: true,
                 );
                 Navigator.pop(context, imageResult);
               },
