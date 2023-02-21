@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:image_compression_flutter/image_compression_flutter.dart';
 
+import 'data/image_item.dart';
+
 class ImageUtils {
   static Future<Uint8List> convert<InputImageType>(
     InputImageType image, {
@@ -61,4 +63,13 @@ class ImageUtils {
 
     return outputs;
   }
+}
+
+class ImageResult{
+  List<File>? originalFile;
+  Uint8List? singleFileUint8List;
+  List<ImageItem>? editedList;
+  bool isMultiple;
+
+  ImageResult({this.originalFile, this.singleFileUint8List, this.editedList, this.isMultiple = false});
 }

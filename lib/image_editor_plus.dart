@@ -22,6 +22,7 @@ import 'package:image_editor_plus/layers/image_layer.dart';
 import 'package:image_editor_plus/layers/text_layer.dart';
 import 'package:image_editor_plus/modules/all_emojies.dart';
 import 'package:image_editor_plus/modules/text.dart';
+import 'package:image_editor_plus/utils.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:screenshot/screenshot.dart';
@@ -41,6 +42,7 @@ String i18n(String sourceString) =>
 class ImageEditor extends StatelessWidget {
   final Uint8List? image;
   final List? images;
+  final List<File>? originalFile;
 
   final Directory? savePath;
   final int maxLength;
@@ -55,6 +57,7 @@ class ImageEditor extends StatelessWidget {
       this.allowGallery = false,
       this.allowMultiple = false,
       this.maxLength = 99,
+        this.originalFile,
       Color? appBar})
       : super(key: key);
 
@@ -73,6 +76,7 @@ class ImageEditor extends StatelessWidget {
         allowGallery: allowGallery,
         allowMultiple: allowMultiple,
         maxLength: maxLength,
+        originalFile: originalFile,
       );
     } else {
       return SingleImageEditor(
@@ -80,6 +84,7 @@ class ImageEditor extends StatelessWidget {
         savePath: savePath,
         allowCamera: allowCamera,
         allowGallery: allowGallery,
+        originalFile: originalFile,
       );
     }
   }
@@ -119,6 +124,7 @@ class MultiImageEditor extends StatefulWidget {
   final List images;
   final int maxLength;
   final bool allowGallery, allowCamera, allowMultiple;
+  final List<File>? originalFile;
 
   const MultiImageEditor({
     Key? key,
@@ -128,6 +134,7 @@ class MultiImageEditor extends StatefulWidget {
     this.allowGallery = false,
     this.allowMultiple = false,
     this.maxLength = 99,
+    this.originalFile,
   }) : super(key: key);
 
   @override
@@ -180,7 +187,11 @@ class _MultiImageEditorState extends State<MultiImageEditor> {
             IconButton(
               icon: const Icon(Icons.check),
               onPressed: () async {
-                Navigator.pop(context, images);
+                var imageResult = ImageResult(
+                    editedList : images,
+                  originalFile: widget.originalFile,
+                );
+                Navigator.pop(context, imageResult);
               },
             ).paddingSymmetric(horizontal: 8),
           ],
@@ -220,12 +231,17 @@ class _MultiImageEditorState extends State<MultiImageEditor> {
                             MaterialPageRoute(
                               builder: (context) => SingleImageEditor(
                                 image: image,
+                                originalFile: widget.originalFile,
                               ),
                             ),
                           );
 
                           if (img != null) {
-                            image.load(img);
+                            if(img is ImageResult){
+                              image.load(img.singleFileUint8List);
+                            }else{
+                              image.load(img);
+                            }
                             setState(() {});
                           }
                         }),
@@ -306,6 +322,7 @@ class SingleImageEditor extends StatefulWidget {
   final dynamic image;
   final List? imageList;
   final bool allowCamera, allowGallery;
+  final List<File>? originalFile;
 
   const SingleImageEditor({
     Key? key,
@@ -314,6 +331,7 @@ class SingleImageEditor extends StatefulWidget {
     this.imageList,
     this.allowCamera = false,
     this.allowGallery = false,
+    this.originalFile,
   }) : super(key: key);
 
   @override
@@ -398,8 +416,11 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
 
           var binaryIntList =
               await screenshotController.capture(pixelRatio: pixelRatio);
-
-          Navigator.pop(context, binaryIntList);
+          var imageResult = ImageResult(
+            singleFileUint8List: binaryIntList,
+            originalFile: widget.originalFile,
+          );
+          Navigator.pop(context, imageResult);
         },
       ).paddingSymmetric(horizontal: 8),
     ];
@@ -1036,7 +1057,6 @@ class _ImageCropperState extends State<ImageCropper> {
                 if (state == null) return;
 
                 var data = await cropImageDataWithNativeLibrary(state: state);
-
                 Navigator.pop(context, data);
               },
             ).paddingSymmetric(horizontal: 8),
