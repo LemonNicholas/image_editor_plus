@@ -51,8 +51,8 @@ class _EmojiLayerOverlayState extends State<EmojiLayerOverlay> {
               activeColor: Colors.white,
               inactiveColor: Colors.grey,
               value: widget.layer.size,
-              min: 0.0,
-              max: 100.0,
+              min: emojiMinSize,
+              max: emojiMaxSize,
               onChangeEnd: (v) {
                 setState(() {
                   widget.layer.size = v.toDouble();

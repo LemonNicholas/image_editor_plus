@@ -31,6 +31,8 @@ import 'modules/colors_picker.dart';
 
 late Size viewportSize;
 double viewportRatio = 1;
+double emojiMinSize = 50;
+double emojiMaxSize = 200;
 
 List<Layer> layers = [], undoLayers = [], removedLayers = [];
 Map<String, String> _translations = {};
@@ -556,7 +558,11 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
 
         // Emoji layer
         if (layerItem is EmojiLayerData) {
-          return EmojiLayer(layerData: layerItem);
+          return EmojiLayer(layerData: layerItem,onUpdate: (){
+            setState(() {
+
+            });
+          },);
         }
 
         // Text layer
@@ -1388,11 +1394,13 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
   }
 
   Future<void> controllerEmoji() async {
+    // print("lemon rotateValue : ${rotateValue % 4}");
+
     EmojiLayerData? layer = await showModalBottomSheet(
       context: context,
       backgroundColor: black,
       builder: (BuildContext context) {
-        return const Emojies();
+        return Emojies(rotate: (rotateValue % 4));
       },
     );
 

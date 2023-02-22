@@ -1,10 +1,15 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:image_editor_plus/data/data.dart';
 import 'package:image_editor_plus/data/layer.dart';
 import 'package:image_editor_plus/image_editor_plus.dart';
 
 class Emojies extends StatefulWidget {
-  const Emojies({Key? key}) : super(key: key);
+
+	double? rotate;
+
+	Emojies({Key? key, this.rotate}) : super(key: key);
 
   @override
   _EmojiesState createState() => _EmojiesState();
@@ -61,6 +66,7 @@ class _EmojiesState extends State<Emojies> {
 						EmojiLayerData(
 						  text: emoji,
 						  size: 32.0,
+							rotation: -((widget.rotate??0) * 90) * pi / 180,
 						),
 					  );
 					},

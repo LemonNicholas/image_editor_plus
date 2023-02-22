@@ -58,9 +58,15 @@ class _EmojiLayerState extends State<EmojiLayer> {
               widget.layerData.offset.dx + detail.focalPointDelta.dx,
               widget.layerData.offset.dy + detail.focalPointDelta.dy,
             );
+            // setState(() {});
           } else if (detail.pointerCount == 2) {
             widget.layerData.size =
                 initialSize + detail.scale * 5 * (detail.scale > 1 ? 1 : -1);
+            if(widget.layerData.size > emojiMaxSize){
+              widget.layerData.size = emojiMaxSize;
+            }else if(widget.layerData.size < emojiMinSize){
+              widget.layerData.size = emojiMinSize;
+            }
           }
 
           setState(() {});
