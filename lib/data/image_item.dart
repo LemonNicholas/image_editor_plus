@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_editor_plus/image_editor_plus.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_size_getter/image_size_getter.dart';
 
 class ImageItem {
   int width = 300;
@@ -22,6 +23,7 @@ class ImageItem {
     loader = Completer();
 
     dynamic decodedImage;
+    Size? size;
 
     if (imageFile is ImageItem) {
       height = imageFile.height;
@@ -33,23 +35,28 @@ class ImageItem {
       loader.complete(true);
     } else if (imageFile is File || imageFile is XFile) {
       image = await imageFile.readAsBytes();
-      decodedImage = await decodeImageFromList(image);
+      size = ImageSizeGetter.getSize(MemoryInput(image));
+      // decodedImage = await decodeImageFromList(image);
     } else {
       image = imageFile;
-      decodedImage = await decodeImageFromList(imageFile);
+      size = ImageSizeGetter.getSize(MemoryInput(image));
+      // decodedImage = await decodeImageFromList(imageFile);
     }
 
     // image was decoded
-    if (decodedImage != null) {
+    if (size != null) {
       // print(['height', viewportSize.height, decodedImage.height]);
       // print(['width', viewportSize.width, decodedImage.width]);
 
-      height = decodedImage.height;
-      width = decodedImage.width;
+      height = size.height;
+      width = size.width;
       viewportRatio = viewportSize.height / height;
 
       loader.complete(decodedImage);
     }
+    print("lemon width : $width");
+    print("lemon height : $height");
+    print("lemon viewportRatio : $viewportRatio");
 
     return true;
   }
