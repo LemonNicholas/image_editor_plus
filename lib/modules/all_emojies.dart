@@ -65,7 +65,7 @@ class _EmojiesState extends State<Emojies> {
 						context,
 						EmojiLayerData(
 						  text: emoji,
-						  size: 32.0,
+						  size: emojiMinSize,
 							rotation: -((widget.rotate??0) * 90) * pi / 180,
 						),
 					  );
