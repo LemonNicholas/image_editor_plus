@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_editor_plus/data/image_item.dart';
 import 'package:image_editor_plus/image_editor_plus.dart';
 
 void main() {
@@ -48,45 +49,59 @@ class _ImageEditorExampleState extends State<ImageEditorExample> {
           ElevatedButton(
             child: const Text("Single image editor"),
             onPressed: () async {
-              var editedImage = await Navigator.push(
+              List<ImageItem>? editedImage = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => ImageEditor(
-                    image: imageData,
+                    images: [ImageItem(img: imageData,key: "testing1")],
                   ),
                 ),
               );
 
-              // replace with edited image
-              if (editedImage != null) {
-                imageData = editedImage;
-                setState(() {});
+              print("lemon single editedImage : ${editedImage}");
+              if(editedImage?.isNotEmpty == true){
+                print("lemon single editedImage.length : ${editedImage?.length}");
+                editedImage?.forEach((element) {
+                  print("lemon single element : ${element.key}");
+                });
               }
+              // // replace with edited image
+              // if (editedImage != null) {
+              //   imageData = editedImage;
+              //   setState(() {});
+              // }
             },
           ),
           ElevatedButton(
             child: const Text("Multiple image editor"),
             onPressed: () async {
-              var editedImage = await Navigator.push(
+              List<ImageItem>? editedImage = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => ImageEditor(
                     images: [
-                      imageData,
-                      imageData,
+                      ImageItem(img: imageData,key: "testing2"),
+                      ImageItem(img: imageData,key: "testing3"),
                     ],
-                    allowMultiple: true,
                     allowCamera: true,
                     allowGallery: true,
                   ),
                 ),
               );
 
-              // replace with edited image
-              if (editedImage != null) {
-                imageData = editedImage;
-                setState(() {});
+              print("lemon multiple editedImage : ${editedImage}");
+              if(editedImage?.isNotEmpty == true){
+                print("lemon multiple editedImage.length : ${editedImage?.length}");
+                editedImage?.forEach((element) {
+                  print("lemon multiple element : ${element.key}");
+                });
               }
+
+              // // replace with edited image
+              // if (editedImage != null) {
+              //   imageData = editedImage;
+              //   setState(() {});
+              // }
             },
           ),
         ],

@@ -7,13 +7,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:image_size_getter/image_size_getter.dart';
 
 class ImageItem {
+  String? key;
   int width = 300;
   int height = 300;
   Uint8List image = Uint8List.fromList([]);
   double viewportRatio = 1;
   Completer loader = Completer();
 
-  ImageItem([dynamic img]) {
+  ImageItem({dynamic img, this.key}) {
     if (img != null) load(img);
   }
 

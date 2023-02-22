@@ -23,7 +23,6 @@ import 'package:image_editor_plus/layers/image_layer.dart';
 import 'package:image_editor_plus/layers/text_layer.dart';
 import 'package:image_editor_plus/modules/all_emojies.dart';
 import 'package:image_editor_plus/modules/text.dart';
-import 'package:image_editor_plus/utils.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:screenshot/screenshot.dart';
@@ -40,50 +39,48 @@ String i18n(String sourceString) => _translations[sourceString.toLowerCase()] ??
 
 /// Single endpoint for MultiImageEditor & SingleImageEditor
 class ImageEditor extends StatelessWidget {
-  final Uint8List? image;
-  final List? images;
-  final List<File>? originalFile;
+  // final Uint8List? image;
+  // final List? images;
+  // final List<File>? originalFile;
+  final List<ImageItem> images;
 
   final Directory? savePath;
   final int maxLength;
-  final bool allowGallery, allowCamera, allowMultiple;
+  final bool allowGallery, allowCamera;
 
   const ImageEditor(
       {Key? key,
-      this.image,
-      this.images,
+      required this.images,
+      // this.image,
+      // this.images,
       this.savePath,
       this.allowCamera = false,
       this.allowGallery = false,
-      this.allowMultiple = false,
       this.maxLength = 99,
-      this.originalFile,
+      // this.originalFile,
       Color? appBar})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    if (images == null && image == null /*&& !allowCamera && !allowGallery*/) {
+    if (images.isEmpty /*images == null && image == null && !allowCamera && !allowGallery*/) {
       throw Exception('No image to work with, provide an image or allow the image picker.');
     }
 
-    if ((image == null || images != null) && allowMultiple == true) {
+    if (images.length > 1 /*(image == null || images != null) && allowMultiple == true*/) {
       return MultiImageEditor(
-        images: images ?? [],
+        images: images,
         savePath: savePath,
         allowCamera: allowCamera,
         allowGallery: allowGallery,
-        allowMultiple: allowMultiple,
         maxLength: maxLength,
-        originalFile: originalFile,
       );
     } else {
       return SingleImageEditor(
-        image: image,
+        image: images[0],
         savePath: savePath,
         allowCamera: allowCamera,
         allowGallery: allowGallery,
-        originalFile: originalFile,
       );
     }
   }
@@ -120,10 +117,9 @@ class ImageEditor extends StatelessWidget {
 /// Show multiple image carousel to edit multple images at one and allow more images to be added
 class MultiImageEditor extends StatefulWidget {
   final Directory? savePath;
-  final List images;
+  final List<ImageItem> images;
   final int maxLength;
-  final bool allowGallery, allowCamera, allowMultiple;
-  final List<File>? originalFile;
+  final bool allowGallery, allowCamera;
 
   const MultiImageEditor({
     Key? key,
@@ -131,9 +127,7 @@ class MultiImageEditor extends StatefulWidget {
     this.savePath,
     this.allowCamera = false,
     this.allowGallery = false,
-    this.allowMultiple = false,
     this.maxLength = 99,
-    this.originalFile,
   }) : super(key: key);
 
   @override
@@ -145,7 +139,8 @@ class _MultiImageEditorState extends State<MultiImageEditor> {
 
   @override
   void initState() {
-    images = widget.images.map((e) => ImageItem(e)).toList();
+    images = widget.images;
+    // images = widget.images.map((e) => ImageItem(img: e)).toList();
 
     super.initState();
   }
@@ -171,7 +166,7 @@ class _MultiImageEditorState extends State<MultiImageEditor> {
                     var selected = await picker.pickMultiImage();
 
                     setState(() {
-                      images.addAll(selected.map((e) => ImageItem(e)).toList());
+                      images.addAll(selected.map((e) => ImageItem(img: e)).toList());
                     });
                   },
                 ).paddingSymmetric(horizontal: 8),
@@ -184,19 +179,19 @@ class _MultiImageEditorState extends State<MultiImageEditor> {
                     if (selected == null) return;
 
                     setState(() {
-                      images.add(ImageItem(selected));
+                      images.add(ImageItem(img: selected));
                     });
                   },
                 ).paddingSymmetric(horizontal: 8),
               IconButton(
                 icon: const Icon(Icons.check),
                 onPressed: () async {
-                  var imageResult = ImageResult(
-                    editedList: images,
-                    originalFile: widget.originalFile,
-                    isMultiple: true,
-                  );
-                  Navigator.pop(context, imageResult);
+                  // var imageResult = ImageResult(
+                  //   editedList: images,
+                  //   originalFile: widget.originalFile,
+                  //   isMultiple: true,
+                  // );
+                  Navigator.pop(context, images);
                 },
               ).paddingSymmetric(horizontal: 8),
             ],
@@ -213,24 +208,33 @@ class _MultiImageEditorState extends State<MultiImageEditor> {
               var image = images[index];
               return GestureDetector(
                 onTap: () async {
-                  var img = await Navigator.push(
+                  List<ImageItem>? images = await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => SingleImageEditor(
                         image: image,
-                        originalFile: widget.originalFile,
                       ),
                     ),
                   );
 
-                  if (img != null) {
-                    if (img is ImageResult) {
-                      image.load(img.singleFileUint8List);
-                    } else {
-                      image.load(img);
-                    }
-                    setState(() {});
-                  }
+                  if (images == null) return;
+                  await Future.forEach<ImageItem>(images, (element) {
+                    image.load(element);
+                  });
+                  setState(() {});
+                  // for (var element in images) {
+                  //   image.load(element);
+                  // }
+                  //
+                  // if (images != null) {
+                  //   image.load(img);
+                  //   // if (img is ImageItem) {
+                  //   //   image.load(img);
+                  //   // } else {
+                  //   //   image.load(img);
+                  //   // }
+                  //   setState(() {});
+                  // }
                 },
                 child: Image.memory(
                   image.image,
@@ -362,19 +366,17 @@ class _MultiImageEditorState extends State<MultiImageEditor> {
 /// Image editor with all option available
 class SingleImageEditor extends StatefulWidget {
   final Directory? savePath;
-  final dynamic image;
+  final ImageItem image;
   final List? imageList;
   final bool allowCamera, allowGallery;
-  final List<File>? originalFile;
 
   const SingleImageEditor({
     Key? key,
+    required this.image,
     this.savePath,
-    this.image,
     this.imageList,
     this.allowCamera = false,
     this.allowGallery = false,
-    this.originalFile,
   }) : super(key: key);
 
   @override
@@ -464,14 +466,19 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
       IconButton(
         icon: const Icon(Icons.check),
         onPressed: () async {
+          if (layers.length == 1 && selectedFilter == null && rotateValue == 0 && flipValue == 0 && selectedCrop == null) {
+            Navigator.pop(context, [widget.image]);
+            return;
+          }
           resetTransformation();
 
           var binaryIntList = await screenshotController.capture(pixelRatio: pixelRatio);
-          var imageResult = ImageResult(
-            singleFileUint8List: binaryIntList,
-            originalFile: widget.originalFile,
-          );
-          Navigator.pop(context, imageResult);
+          if (binaryIntList == null) return;
+          widget.image.image = binaryIntList;
+          // var imageResult = ImageResult(
+          //   singleFileUint8List: binaryIntList,
+          // );
+          Navigator.pop(context, [widget.image]);
         },
       ).paddingSymmetric(horizontal: 8),
     ];
@@ -479,9 +486,7 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
 
   @override
   void initState() {
-    if (widget.image != null) {
-      loadImage(widget.image!);
-    }
+    loadImage(widget.image);
 
     super.initState();
   }
@@ -608,6 +613,8 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
           },
           child: Center(
             child: SizedBox(
+              // height: currentImage.height / pixelRatio,
+              // width: currentImage.width / pixelRatio,
               child: Screenshot(
                 controller: screenshotController,
                 child: RotatedBox(
@@ -1079,7 +1086,7 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
 
     var mergedImage = await getMergedImage();
 
-    Uint8List? croppedImage = await Navigator.push(
+    CropResult? result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ImageCropper(
@@ -1088,12 +1095,13 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
       ),
     );
 
-    if (croppedImage == null) return;
+    if (result == null) return;
 
     flipValue = 0;
     rotateValue = 0;
+    selectedCrop ??= result.aspectRatioOriginal;
 
-    await currentImage.load(croppedImage);
+    await currentImage.load(result.image);
     setState(() {});
   }
 
@@ -1113,7 +1121,7 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
 
       layers.add(
         ImageLayerData(
-          image: ImageItem(drawing),
+          image: ImageItem(img: drawing),
         ),
       );
 
@@ -1324,6 +1332,7 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
 
   BackgroundLayerData? originalBackgroundLayerData;
   ColorFilterGenerator? selectedFilter;
+  double? selectedCrop;
 
   Future<void> controllerFilter() async {
     if (originalBackgroundLayerData == null) return;
@@ -1357,7 +1366,7 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
     undoLayers.clear();
 
     var layer = BackgroundLayerData(
-      file: ImageItem(result.image),
+      file: ImageItem(img: result.image),
     );
     selectedFilter = result.selectedFilter;
 
@@ -1484,6 +1493,13 @@ class BottomButton extends StatelessWidget {
   }
 }
 
+class CropResult {
+  double? aspectRatioOriginal;
+  Uint8List? image;
+
+  CropResult({required this.image, required this.aspectRatioOriginal});
+}
+
 /// Crop given image with various aspect ratios
 class ImageCropper extends StatefulWidget {
   final Uint8List image;
@@ -1528,7 +1544,13 @@ class _ImageCropperState extends State<ImageCropper> {
                 if (state == null) return;
 
                 var data = await cropImageDataWithNativeLibrary(state: state);
-                Navigator.pop(context, data);
+                if (data == null) {
+                  Navigator.pop(context);
+                  return;
+                }
+
+                var result = CropResult(image: data, aspectRatioOriginal: aspectRatioOriginal);
+                Navigator.pop(context, result);
               },
             ).paddingSymmetric(horizontal: 8),
           ],
