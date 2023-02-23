@@ -55,9 +55,9 @@ class ImageItem {
 
       loader.complete(decodedImage);
     }
-    print("lemon width : $width");
-    print("lemon height : $height");
-    print("lemon viewportRatio : $viewportRatio");
+    // print("lemon width : $width");
+    // print("lemon height : $height");
+    // print("lemon viewportRatio : $viewportRatio");
 
     return true;
   }

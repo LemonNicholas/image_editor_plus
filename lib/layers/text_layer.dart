@@ -60,7 +60,11 @@ class _TextViewState extends State<TextLayer> {
           } else if (detail.pointerCount == 2) {
             widget.layerData.size =
                 initialSize + detail.scale * (detail.scale > 1 ? 1 : -1);
-
+            if(widget.layerData.size > textMaxSize){
+              widget.layerData.size = textMaxSize;
+            }else if(widget.layerData.size < textMinSize){
+              widget.layerData.size = textMinSize;
+            }
             // print('angle');
             // print(detail.rotation);
             widget.layerData.rotation = detail.rotation;

@@ -60,33 +60,42 @@ class _ImageLayerState extends State<ImageLayer> {
             );
           } else if (detail.pointerCount == 2) {
             widget.layerData.scale = detail.scale;
+            if(widget.layerData.scale > imageMaxSize){
+              widget.layerData.scale = imageMaxSize;
+            }else if(widget.layerData.scale < imageMinSize){
+              widget.layerData.scale = imageMinSize;
+            }
+            widget.layerData.rotation = detail.rotation;
           }
 
           setState(() {});
         },
-        child: Transform(
-          transform: Matrix4(
-            1,
-            0,
-            0,
-            0,
-            0,
-            1,
-            0,
-            0,
-            0,
-            0,
-            1,
-            0,
-            0,
-            1,
-            0,
-            1 / widget.layerData.scale,
-          ),
-          child: SizedBox(
-            width: widget.layerData.image.width.toDouble(),
-            height: widget.layerData.image.height.toDouble(),
-            child: Image.memory(widget.layerData.image.image),
+        child: Transform.rotate(
+          angle: widget.layerData.rotation,
+          child: Transform(
+            transform: Matrix4(
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              1,
+              0,
+              1 / widget.layerData.scale,
+            ),
+            child: SizedBox(
+              width: widget.layerData.image.width.toDouble(),
+              height: widget.layerData.image.height.toDouble(),
+              child: Image.memory(widget.layerData.image.image),
+            ),
           ),
         ),
       ),

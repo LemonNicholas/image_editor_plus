@@ -51,8 +51,8 @@ class _ImageLayerOverlayState extends State<ImageLayerOverlay> {
               activeColor: Colors.white,
               inactiveColor: Colors.grey,
               value: widget.layerData.scale,
-              min: 0,
-              max: 2,
+              min: imageMinSize,
+              max: imageMaxSize,
               divisions: 100,
               onChangeEnd: (v) {
                 setState(() {

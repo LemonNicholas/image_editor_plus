@@ -33,6 +33,10 @@ late Size viewportSize;
 double viewportRatio = 1;
 double emojiMinSize = 50;
 double emojiMaxSize = 200;
+double imageMinSize = 0.5;
+double imageMaxSize = 1.5;
+double textMinSize = 30;
+double textMaxSize = 100;
 
 List<Layer> layers = [], undoLayers = [], removedLayers = [];
 Map<String, String> _translations = {};
@@ -224,9 +228,6 @@ class _MultiImageEditorState extends State<MultiImageEditor> {
                     image.load(element);
                   });
                   setState(() {});
-                  // for (var element in images) {
-                  //   image.load(element);
-                  // }
                   //
                   // if (images != null) {
                   //   image.load(img);
@@ -468,13 +469,15 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
       IconButton(
         icon: const Icon(Icons.check),
         onPressed: () async {
-          if (layers.length == 1 && selectedFilter == null && rotateValue == 0 && flipValue == 0 && selectedCrop == null) {
-            Navigator.pop(context, [widget.image]);
-            return;
-          }
+          // if (layers.length == 1 && selectedFilter == null && rotateValue == 0 && flipValue == 0 && selectedCrop == null) {
+          //   Navigator.pop(context, [widget.image]);
+          //   return;
+          // }
+          showLoading();
           resetTransformation();
 
           var binaryIntList = await screenshotController.capture(pixelRatio: pixelRatio);
+          Navigator.pop(context);
           if (binaryIntList == null) return;
           widget.image.image = binaryIntList;
           // var imageResult = ImageResult(
@@ -484,6 +487,19 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
         },
       ).paddingSymmetric(horizontal: 8),
     ];
+  }
+
+  void showLoading() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // This prevents the user from dismissing the dialog by tapping outside
+      builder: (context) {
+        return const AlertDialog(
+          backgroundColor: Colors.transparent,
+          content: Center(child: CircularProgressIndicator()),
+        );
+      },
+    );
   }
 
   @override
@@ -558,11 +574,12 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
 
         // Emoji layer
         if (layerItem is EmojiLayerData) {
-          return EmojiLayer(layerData: layerItem,onUpdate: (){
-            setState(() {
-
-            });
-          },);
+          return EmojiLayer(
+            layerData: layerItem,
+            onUpdate: () {
+              setState(() {});
+            },
+          );
         }
 
         // Text layer
@@ -680,7 +697,7 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
                   );
                 },
                 separatorBuilder: (context, index) {
-                  return SizedBox(width: 8);
+                  return const SizedBox(width: 8);
                 },
                 itemCount: bottomButtonList.length),
             // child: ListView(
@@ -1492,7 +1509,7 @@ class BottomButton extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             i18n(text),
-            style: TextStyle(fontSize: 10),
+            style: const TextStyle(fontSize: 10),
             textAlign: TextAlign.center,
           ),
         ],

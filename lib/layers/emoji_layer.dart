@@ -67,6 +67,7 @@ class _EmojiLayerState extends State<EmojiLayer> {
             }else if(widget.layerData.size < emojiMinSize){
               widget.layerData.size = emojiMinSize;
             }
+            widget.layerData.rotation = detail.rotation;
           }
 
           setState(() {});

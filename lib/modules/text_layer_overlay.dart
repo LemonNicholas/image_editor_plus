@@ -53,8 +53,8 @@ class _TextLayerOverlayState extends State<TextLayerOverlay> {
               activeColor: Colors.white,
               inactiveColor: Colors.grey,
               value: widget.layer.size,
-              min: 0.0,
-              max: 100.0,
+              min: textMinSize,
+              max: textMaxSize,
               onChangeEnd: (v) {
                 setState(() {
                   widget.layer.size = v.toDouble();
