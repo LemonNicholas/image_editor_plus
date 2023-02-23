@@ -469,10 +469,10 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
       IconButton(
         icon: const Icon(Icons.check),
         onPressed: () async {
-          // if (layers.length == 1 && selectedFilter == null && rotateValue == 0 && flipValue == 0 && selectedCrop == null) {
-          //   Navigator.pop(context, [widget.image]);
-          //   return;
-          // }
+          if (layers.length == 1 && selectedFilter == null && rotateValue == 0 && flipValue == 0 && selectedCrop == null) {
+            Navigator.pop(context, [widget.image]);
+            return;
+          }
           showLoading();
           resetTransformation();
 
