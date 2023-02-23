@@ -27,7 +27,8 @@ dependencies:
   image: ^3.2.0
   image_editor: ^1.0.2
   colorfilter_generator: ^0.0.8
-  hand_signature: ^2.3.0+1
+#  hand_signature: ^2.3.0+1
+  hand_signature: ^3.0.1
   image_compression_flutter: ^1.0.2
   image_size_getter: ^2.1.2
 
