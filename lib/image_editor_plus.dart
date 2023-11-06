@@ -469,10 +469,10 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
       IconButton(
         icon: const Icon(Icons.check),
         onPressed: () async {
-          if (layers.length == 1 && selectedFilter == null && rotateValue == 0 && flipValue == 0 && selectedCrop == null) {
-            Navigator.pop(context, [widget.image]);
-            return;
-          }
+          // if (layers.length == 1 && selectedFilter == null && rotateValue == 0 && flipValue == 0 && selectedCrop == null) {
+          //   Navigator.pop(context, [widget.image]);
+          //   return;
+          // }
           showLoading();
           resetTransformation();
 
@@ -1129,27 +1129,51 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
   }
 
   Future<void> controllerBrush() async {
+    resetTransformation();
+    // LoadingScreen(scaffoldGlobalKey).show();
+    var mergedImage = await getMergedImage();
+    // LoadingScreen(scaffoldGlobalKey).hide();
+
+    if (!mounted) return;
+    viewportSize = MediaQuery.of(context).size;
     var drawing = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ImageEditorDrawing(
-          image: currentImage.image,
+          image: ImageItem(img: mergedImage!),
+          translatable: false,
+          // options: widget.brushOption!,
         ),
       ),
     );
 
     if (drawing != null) {
-      undoLayers.clear();
-      removedLayers.clear();
-
-      layers.add(
-        ImageLayerData(
-          image: ImageItem(img: drawing),
-        ),
-      );
+      currentImage.load(drawing);
 
       setState(() {});
     }
+
+    // var drawing = await Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => ImageEditorDrawing(
+    //       image: currentImage.image,
+    //     ),
+    //   ),
+    // );
+    //
+    // if (drawing != null) {
+    //   undoLayers.clear();
+    //   removedLayers.clear();
+    //
+    //   layers.add(
+    //     ImageLayerData(
+    //       image: ImageItem(img: drawing),
+    //     ),
+    //   );
+    //
+    //   setState(() {});
+    // }
   }
 
   Future<void> controllerText() async {
@@ -1982,22 +2006,26 @@ class FilterAppliedImage extends StatelessWidget {
 
 /// Show image drawing surface over image
 class ImageEditorDrawing extends StatefulWidget {
-  final Uint8List image;
+  final ImageItem image;
+  final bool showBackground;
+  final bool translatable;
 
   const ImageEditorDrawing({
-    Key? key,
+    super.key,
     required this.image,
-  }) : super(key: key);
+    this.showBackground = true,
+    this.translatable =  true,
+  });
 
   @override
   State<ImageEditorDrawing> createState() => _ImageEditorDrawingState();
 }
 
 class _ImageEditorDrawingState extends State<ImageEditorDrawing> {
-  ImageItem image = ImageItem();
-
-  Color pickerColor = Colors.white;
-  Color currentColor = Colors.white;
+  Color pickerColor = Colors.white,
+      currentColor = Colors.white,
+      currentBackgroundColor = Colors.black;
+  var screenshotController = ScreenshotController();
 
   final control = HandSignatureControl(
     threshold: 3.0,
@@ -2011,13 +2039,36 @@ class _ImageEditorDrawingState extends State<ImageEditorDrawing> {
   List<Color> colorList = [
     Colors.black,
     Colors.white,
+    Colors.grey,
+    Colors.amber,
+    Colors.amberAccent,
     Colors.blue,
-    Colors.green,
+    Colors.blueAccent,
+    Colors.blueGrey,
+    Colors.cyan,
+    Colors.cyanAccent,
+    Colors.indigo,
+    Colors.indigoAccent,
+    Colors.lightBlue,
+    Colors.lightBlueAccent,
+    Colors.lightGreen,
+    Colors.lightGreenAccent,
+    Colors.orange,
+    Colors.orangeAccent,
+    Colors.deepOrange,
+    Colors.deepOrangeAccent,
     Colors.pink,
+    Colors.pinkAccent,
+    Colors.red,
+    Colors.redAccent,
     Colors.purple,
-    Colors.brown,
-    Colors.indigo,
-    Colors.indigo,
+    Colors.purpleAccent,
+    Colors.deepPurple,
+    Colors.deepPurpleAccent,
+    Colors.teal,
+    Colors.tealAccent,
+    Colors.yellow,
+    Colors.yellowAccent,
   ];
 
   void changeColor(Color color) {
@@ -2027,7 +2078,6 @@ class _ImageEditorDrawingState extends State<ImageEditorDrawing> {
 
   @override
   void initState() {
-    image.load(widget.image);
     control.addListener(() {
       if (control.hasActivePath) return;
 
@@ -2052,16 +2102,20 @@ class _ImageEditorDrawingState extends State<ImageEditorDrawing> {
           automaticallyImplyLeading: false,
           actions: [
             IconButton(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               icon: const Icon(Icons.clear),
               onPressed: () {
                 Navigator.pop(context);
               },
-            ).paddingSymmetric(horizontal: 8),
+            ),
             const Spacer(),
             IconButton(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               icon: Icon(
                 Icons.undo,
-                color: control.paths.isNotEmpty ? white : white.withAlpha(80),
+                color: control.paths.isNotEmpty
+                    ? Colors.white
+                    : Colors.white.withAlpha(80),
               ),
               onPressed: () {
                 if (control.paths.isEmpty) return;
@@ -2070,11 +2124,14 @@ class _ImageEditorDrawingState extends State<ImageEditorDrawing> {
                 control.stepBack();
                 setState(() {});
               },
-            ).paddingSymmetric(horizontal: 8),
+            ),
             IconButton(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               icon: Icon(
                 Icons.redo,
-                color: undoList.isNotEmpty ? white : white.withAlpha(80),
+                color: undoList.isNotEmpty
+                    ? Colors.white
+                    : Colors.white.withAlpha(80),
               ),
               onPressed: () {
                 if (undoList.isEmpty) return;
@@ -2082,34 +2139,56 @@ class _ImageEditorDrawingState extends State<ImageEditorDrawing> {
                 control.paths.add(undoList.removeLast());
                 setState(() {});
               },
-            ).paddingSymmetric(horizontal: 8),
+            ),
             IconButton(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               icon: const Icon(Icons.check),
               onPressed: () async {
                 if (control.paths.isEmpty) return Navigator.pop(context);
-                var data = await control.toImage(color: currentColor);
 
-                return Navigator.pop(context, data!.buffer.asUint8List());
+                if (widget.translatable) {
+                  var data = await control.toImage(
+                    color: currentColor,
+                    height: widget.image.height,
+                    width: widget.image.width,
+                  );
+
+                  if (!mounted) return;
+
+                  return Navigator.pop(context, data!.buffer.asUint8List());
+                }
+
+                var image = await screenshotController.capture();
+
+                if (!mounted) return;
+
+                return Navigator.pop(context, image);
               },
-            ).paddingSymmetric(horizontal: 8),
+            ),
           ],
         ),
-        body: Container(
-          height: MediaQuery.of(context).size.height,
-          width: MediaQuery.of(context).size.width,
-          decoration: BoxDecoration(
-            color: currentColor == black ? white : black,
-            image: DecorationImage(
-              image: Image.memory(widget.image).image,
-              fit: BoxFit.contain,
+        body: Screenshot(
+          controller: screenshotController,
+          child: Container(
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
+            decoration: BoxDecoration(
+              color:
+              widget.showBackground ? null : currentBackgroundColor,
+              image: widget.showBackground
+                  ? DecorationImage(
+                image: Image.memory(widget.image.image).image,
+                fit: BoxFit.contain,
+              )
+                  : null,
             ),
-          ),
-          child: HandSignature(
-            control: control,
-            color: currentColor,
-            width: 1.0,
-            maxWidth: 10.0,
-            type: SignatureDrawType.shape,
+            child: HandSignature(
+              control: control,
+              color: currentColor,
+              width: 1.0,
+              maxWidth: 7.0,
+              type: SignatureDrawType.shape,
+            ),
           ),
         ),
         bottomNavigationBar: SafeArea(
@@ -2124,7 +2203,7 @@ class _ImageEditorDrawingState extends State<ImageEditorDrawing> {
               scrollDirection: Axis.horizontal,
               children: <Widget>[
                 ColorButton(
-                  color: Colors.yellow,
+                  color: currentColor/*Colors.yellow*/,
                   onTap: (color) {
                     showModalBottomSheet(
                       shape: const RoundedRectangleBorder(
@@ -2134,6 +2213,7 @@ class _ImageEditorDrawingState extends State<ImageEditorDrawing> {
                         ),
                       ),
                       context: context,
+                      backgroundColor: Colors.transparent,
                       builder: (context) {
                         return Container(
                           color: Colors.black87,
@@ -2143,7 +2223,10 @@ class _ImageEditorDrawingState extends State<ImageEditorDrawing> {
                               padding: const EdgeInsets.only(top: 16),
                               child: HueRingPicker(
                                 pickerColor: pickerColor,
-                                onColorChanged: changeColor,
+                                onColorChanged: (color) {
+                                  currentColor = color;
+                                  setState(() {});
+                                },
                               ),
                             ),
                           ),
@@ -2152,11 +2235,14 @@ class _ImageEditorDrawingState extends State<ImageEditorDrawing> {
                     );
                   },
                 ),
-                for (int i = 0; i < colorList.length; i++)
+                for (var color in colorList)
                   ColorButton(
-                    color: colorList[i],
-                    onTap: (color) => changeColor(color),
-                    isSelected: colorList[i] == currentColor,
+                    color: color,
+                    onTap: (color) {
+                      currentColor = color;
+                      setState(() {});
+                    },
+                    isSelected: color == currentColor,
                   ),
               ],
             ),
